@@ -61,6 +61,34 @@ select,button{
 
 <body>
 
+<canvas id="pieKT"></canvas>
+<canvas id="pieXD"></canvas>
+<canvas id="pieVH"></canvas>
+
+ <script>
+function drawPie(id, data) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  new Chart(el, {
+    type: 'pie',
+    data: {
+      labels: ['Chưa thực hiện', 'Đang thực hiện', 'Chậm tiến độ', 'Hoàn thành'],
+      datasets: [{
+        data: data,
+        backgroundColor: ['#9e9e9e', '#2196f3', '#f44336', '#4caf50']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' }
+      }
+    }
+  });
+}
+</script>
+ 
 <h2>TIẾN ĐỘ DỰ ÁN KHU CÔNG NGHIỆP</h2>
 
 <!-- BIỂU ĐỒ TRÒN -->
@@ -222,4 +250,5 @@ setInterval(loadData,30000);
 
 </body>
 </html>
+
 
