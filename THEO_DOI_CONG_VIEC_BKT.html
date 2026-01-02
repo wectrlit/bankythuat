@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tiến độ dự án KCN</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{font-family:Arial;background:#f4f6f8;margin:0;padding:10px}
+h2,h3{text-align:center;margin:8px 0}
+
+.summary{
+ display:grid;
+ grid-template-columns:repeat(4,1fr);
+ gap:8px;margin-bottom:12px
+}
+.box{
+ background:#fff;padding:10px;border-radius:8px;
+ box-shadow:0 2px 5px rgba(0,0,0,.1);
+ text-align:center
+}
+.box b{font-size:18px}
+
+.chart-grid{
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+ gap:10px;margin-bottom:10px
+}
+
+.filter{
+ display:flex;gap:6px;margin-bottom:10px
+}
+select,button{
+ flex:1;padding:6px;border-radius:6px;border:1px solid #ccc
+}
+
+.card{
+ background:#fff;padding:12px;border-radius:10px;
+ margin-bottom:10px;box-shadow:0 2px 5px rgba(0,0,0,.1)
+}
+
+.progress{
+ background:#eee;border-radius:6px;overflow:hidden;margin:6px 0
+}
+.progress div{
+ height:18px;color:#fff;text-align:center;font-size:12px
+}
+
+.done{background:#4caf50}
+.doing{background:#fbc02d}
+.late{background:#e53935}
+.todo{background:#9e9e9e}
+
+.tag{
+ display:inline-block;padding:3px 6px;border-radius:5px;
+ font-size:12px;color:#fff;margin-bottom:4px
+}
+</style>
+</head>
+
+<body>
+
+<h2>TIẾN ĐỘ DỰ ÁN KHU CÔNG NGHIỆP</h2>
+
+<!-- BIỂU ĐỒ TRÒN -->
+<h3>TÌNH TRẠNG CÔNG VIỆC THEO PHÒNG</h3>
+<div class="chart-grid">
+ <div class="box">
+  <b>PHÒNG KỸ THUẬT</b>
+  <canvas id="chartKT"></canvas>
+ </div>
+ <div class="box">
+  <b>PHÒNG QUẢN LÝ XÂY DỰNG</b>
+  <canvas id="chartXD"></canvas>
+ </div>
+ <div class="box">
+  <b>PHÒNG VẬN HÀNH</b>
+  <canvas id="chartVH"></canvas>
+ </div>
+</div>
+
+<div style="text-align:center;margin-bottom:10px">
+ <button onclick="resetFilter()">Hiển thị toàn bộ công việc</button>
+</div>
+
+<!-- DASHBOARD -->
+<div class="summary">
+ <div class="box"><b id="total">0</b><br>Tổng việc</div>
+ <div class="box"><b id="done">0</b><br>Hoàn thành</div>
+ <div class="box"><b id="doing">0</b><br>Đang thực hiện</div>
+ <div class="box"><b id="late">0</b><br>Chậm tiến độ</div>
+</div>
+
+<div class="filter">
+ <select id="groupFilter">
+  <option value="">Tất cả nhóm việc</option>
+ </select>
+ <select id="statusFilter">
+  <option value="">Tất cả trạng thái</option>
+ </select>
+</div>
+
+<div id="tasks"></div>
+
+<script>
+/* ====== THAY LINK CSV GOOGLE SHEET TẠI ĐÂY ====== */
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRVKVEowjKcxinXqPCHrocwjopFDpXs2zEAzqnm48CxErA8fkJkQ-ahbMOHj_SbMf7usq6ZQgAq0V4x/pub?gid=0&single=true&output=csv";
+
+/* ============================================== */
+
+let allData=[],currentDepartment="",currentStatus="";
+let charts={};
+
+function loadData(){
+ fetch(SHEET_URL)
+ .then(r=>r.text())
+ .then(t=>{
+  const rows=t.split("\n").slice(1);
+  allData=rows.map(r=>{
+   const c=r.split(",");
+   return{
+    group:c[1],
+    name:c[2],
+    owner:c[3],
+    end:c[5],
+    percent:parseInt(c[6])||0,
+    status:c[7],
+    alert:c[9],
+    department:c[10]
+   }
+  }).filter(x=>x.name);
+  renderFilters();
+  render(allData);
+  drawAllCharts();
+ });
+}
+
+function render(data){
+ let html="",t=data.length,d=0,w=0,l=0;
+ data.forEach(x=>{
+  let cls="todo";
+  if(x.status=="Hoàn thành"){cls="done";d++}
+  else if(x.status=="Đang thực hiện"){cls="doing";w++}
+  else if(x.status=="Chậm tiến độ"){cls="late";l++}
+
+  html+=`
+   <div class="card">
+    <b>${x.name}</b><br>
+    Nhóm: ${x.group}<br>
+    Phụ trách: ${x.owner}<br>
+    <div class="progress">
+     <div class="${cls}" style="width:${x.percent}%">${x.percent}%</div>
+    </div>
+    <span class="tag ${cls}">${x.status}</span><br>
+    Hạn KH: ${x.end}<br>
+    ${x.alert?"<b style='color:red'>⚠ CHẬM TIẾN ĐỘ</b>":""}
+   </div>`;
+ });
+ document.getElementById("tasks").innerHTML=html;
+ document.getElementById("total").innerText=t;
+ document.getElementById("done").innerText=d;
+ document.getElementById("doing").innerText=w;
+ document.getElementById("late").innerText=l;
+}
+
+function renderFilters(){
+ groupFilter.innerHTML='<option value="">Tất cả nhóm việc</option>'+
+ [...new Set(allData.map(x=>x.group))].map(g=>`<option>${g}</option>`).join("");
+ statusFilter.innerHTML='<option value="">Tất cả trạng thái</option>'+
+ [...new Set(allData.map(x=>x.status))].map(s=>`<option>${s}</option>`).join("");
+}
+
+groupFilter.onchange=statusFilter.onchange=()=>{
+ let g=groupFilter.value,s=statusFilter.value;
+ render(allData.filter(x=>(!g||x.group==g)&&(!s||x.status==s)));
+};
+
+function countStatus(dept){
+ let r={"Chưa thực hiện":0,"Đang thực hiện":0,"Chậm tiến độ":0,"Hoàn thành":0};
+ allData.filter(x=>x.department==dept).forEach(x=>r[x.status]++);
+ return r;
+}
+
+function drawPie(id,dept,data){
+ if(charts[id]) charts[id].destroy();
+ charts[id]=new Chart(document.getElementById(id),{
+  type:'pie',
+  data:{
+   labels:Object.keys(data),
+   datasets:[{
+    data:Object.values(data),
+    backgroundColor:["#9e9e9e","#fbc02d","#e53935","#4caf50"]
+   }]
+  },
+  options:{
+   plugins:{legend:{position:'bottom'}},
+   onClick:(e,el)=>{
+    if(el.length){
+     currentDepartment=dept;
+     currentStatus=Object.keys(data)[el[0].index];
+     render(allData.filter(x=>x.department==dept && x.status==currentStatus));
+    }
+   }
+  }
+ });
+}
+
+function drawAllCharts(){
+ drawPie("chartKT","PHÒNG KỸ THUẬT",countStatus("PHÒNG KỸ THUẬT"));
+ drawPie("chartXD","PHÒNG QUẢN LÝ XÂY DỰNG",countStatus("PHÒNG QUẢN LÝ XÂY DỰNG"));
+ drawPie("chartVH","PHÒNG VẬN HÀNH",countStatus("PHÒNG VẬN HÀNH"));
+}
+
+function resetFilter(){
+ render(allData);
+}
+
+loadData();
+setInterval(loadData,30000);
+</script>
+
+</body>
+</html>
