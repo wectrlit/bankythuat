@@ -153,9 +153,9 @@ function loadData(){
     owner:c[3],
     end:c[5],
     percent:parseInt(c[6])||0,
-    status:c[7],
+    status: c[7]?.trim(),
     alert:c[9],
-    department:c[10]
+    department: c[10]?.trim(),
    }
   }).filter(x=>x.name);
   renderFilters();
@@ -250,5 +250,6 @@ setInterval(loadData,30000);
 
 </body>
 </html>
+
 
 
