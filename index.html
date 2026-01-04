@@ -58,7 +58,16 @@ select,button{
 }
 </style>
 </head>
-
+<footer style="
+ text-align:center;
+ font-size:12px;
+ color:#666;
+ margin-top:20px;
+ padding:10px 0;
+ border-top:1px solid #ddd
+">
+ Powered by Github. Designed by Haivn Ver.1.2
+</footer>
 <body>
 
 <canvas id="pieKT"></canvas>
@@ -148,14 +157,15 @@ function loadData(){
   allData=rows.map(r=>{
    const c=r.split(",");
    return{
-    group:c[1],
-    name:c[2],
-    owner:c[3],
-    end:c[5],
-    percent:parseInt(c[6])||0,
-    status: c[7]?.trim(),
-    alert:c[9],
-    department: c[10]?.trim(),
+  group: c[1],
+  name: c[2],
+  owner: c[3],
+  end: c[5],
+  percent: parseInt(c[6]) || 0,
+  status: c[7]?.trim(),
+  note: c[8]?.trim(),      // Ghi chú
+  alert: c[9]?.trim(),     // Cảnh báo
+  department: c[10]?.trim()
    }
   }).filter(x=>x.name);
   renderFilters();
@@ -182,7 +192,13 @@ function render(data){
     </div>
     <span class="tag ${cls}">${x.status}</span><br>
     Hạn KH: ${x.end}<br>
-    ${x.alert?"<b style='color:red'>⚠ CHẬM TIẾN ĐỘ</b>":""}
+    ${x.alert?"<b style='color:red'>⚠ CHẬM TIẾN ĐỘ</b>":""}${x.note ? `<div style="margin-top:6px;color:#333">
+<b>📝 Ghi chú:</b> ${x.note}
+</div>` : ""}
+
+${x.alert ? `<div style="margin-top:6px;color:#e53935">
+<b>⚠ Cảnh báo:</b> ${x.alert}
+</div>` : ""}
    </div>`;
  });
  document.getElementById("tasks").innerHTML=html;
@@ -245,7 +261,7 @@ function resetFilter(){
 }
 
 loadData();
-setInterval(loadData,30000);
+// setInterval(loadData,30000);
 </script>
 
 </body>
