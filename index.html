@@ -58,16 +58,7 @@ select,button{
 }
 </style>
 </head>
-<footer style="
- text-align:center;
- font-size:12px;
- color:#666;
- margin-top:20px;
- padding:10px 0;
- border-top:1px solid #ddd
-">
- Powered by Github. Designed by Haivn Ver.1.2
-</footer>
+
 <body>
 
 <canvas id="pieKT"></canvas>
@@ -191,13 +182,13 @@ function render(data){
      <div class="${cls}" style="width:${x.percent}%">${x.percent}%</div>
     </div>
     <span class="tag ${cls}">${x.status}</span><br>
-    Hạn KH: ${x.end}<br>
-    ${x.alert?"<b style='color:red'>⚠ CHẬM TIẾN ĐỘ</b>":""}${x.note ? `<div style="margin-top:6px;color:#333">
-<b>📝 Ghi chú:</b> ${x.note}
+    Hạn cuối: ${x.end}<br>
+${x.note ? `<div style="margin-top:6px;color:#333">
+<b>Ghi chú:</b> ${x.note}
 </div>` : ""}
 
 ${x.alert ? `<div style="margin-top:6px;color:#e53935">
-<b>⚠ Cảnh báo:</b> ${x.alert}
+<b>Cảnh báo:</b> ${x.alert}
 </div>` : ""}
    </div>`;
  });
@@ -263,6 +254,17 @@ function resetFilter(){
 loadData();
 // setInterval(loadData,30000);
 </script>
+
+<footer style="
+ text-align:center;
+ font-size:12px;
+ color:#666;
+ margin-top:20px;
+ padding:10px 0;
+ border-top:1px solid #ddd
+">
+Máy chủ Github. Thiết kế bởi Vương Hải (Phiên bản 1.2)
+</footer>
 
 </body>
 </html>
